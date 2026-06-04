@@ -1,0 +1,59 @@
+name: Deploy dbt to TST
+
+on:
+  push:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+jobs:
+  deploy-tst:
+    runs-on: ubuntu-latest
+
+    env:
+      DBT_PROFILES_DIR: ~/.dbt
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dbt Snowflake
+        run: |
+          python -m pip install --upgrade pip
+          pip install dbt-snowflake
+
+      - name: Create dbt profiles.yml
+        run: |
+          mkdir -p ~/.dbt
+
+          cat > ~/.dbt/profiles.yml << EOF
+          portfolio_tracking:
+            target: tst
+            outputs:
+              tst:
+                type: snowflake
+                account: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+                user: ${{ secrets.SNOWFLAKE_USER }}
+                password: ${{ secrets.SNOWFLAKE_PASSWORD }}
+                role: ${{ secrets.SNOWFLAKE_ROLE }}
+                warehouse: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
+                database: PORTFOLIO_TRACKING
+                schema: tst
+                threads: 4
+                client_session_keep_alive: false
+          EOF
+
+      - name: Check dbt connection
+        run: dbt debug --target tst
+
+      - name: Install dbt packages
+        run: dbt deps --target tst
+
+      - name: Build dbt project in TST
+        run: dbt build --target tst
