@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      DBT_PROFILES_DIR: ~/.dbt
+      DBT_PROFILES_DIR: /home/runner/.dbt
 
     steps:
       - name: Checkout repository
@@ -30,9 +30,9 @@ jobs:
 
       - name: Create dbt profiles.yml
         run: |
-          mkdir -p ~/.dbt
+          mkdir -p /home/runner/.dbt
 
-          cat > ~/.dbt/profiles.yml << EOF
+          cat > /home/runner/.dbt/profiles.yml << EOF
           portfolio_tracking:
             target: tst
             outputs:
@@ -48,6 +48,11 @@ jobs:
                 threads: 4
                 client_session_keep_alive: false
           EOF
+
+      - name: Confirm profiles.yml exists
+        run: |
+          ls -la /home/runner/.dbt
+          cat /home/runner/.dbt/profiles.yml | sed 's/password:.*/password: ****/'
 
       - name: Check dbt connection
         run: dbt debug --target tst
