@@ -30,7 +30,23 @@ clean-targets:         # directories to be removed by `dbt clean`
 # directory as views. These settings can be overridden in the individual model
 # files using the `{{ config(...) }}` macro.
 models:
-  portfolio_tracking:
-    # Config indicated by + and applies to all files under models/example/
-    example:
+  portfolio_tracking: # Config indicated by + and applies to all files under models/example/
+    +materialized: view
+    
+    staging:  # Config indicated by + and applies to all files under models/example/staging/
       +materialized: view
+      +schema: staging
+    
+    refined:  # Config indicated by + and applies to all files under models/example/refined/
+      +materialized: view
+      +schema: refined
+
+    marts:
+      portfolio:
+        +materialized: table
+        +schema: mart_portfolio
+  
+snapshots:
+  portfolio_tracking:
+    +target_schema: snapshots
+    
